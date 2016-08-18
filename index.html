@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Cooldown Simulator</title>
+	<meta charset="utf-8"/>
+	<style>
+	body{
+		width: 610px;
+		margin: 20px auto;
+	}
+	form{
+		display: block;
+		width: 100%;
+	}
+	label{
+		display: block;
+		width: 100%;
+	}
+	textarea, input{
+		width: 100%;
+	}
+	</style>
+</head>
+<body>
+	<canvas width="600" height="200"></canvas>
+	<form name="controls">
+		<label>Tempo Final
+		<input type="number" name="duration"/>
+		</label>
+		<label>Char
+		<textarea rows="10" name="char">{
+ "q": {"damage": 10, "ct":1.00, "gcd":1.00, "cd":  1.00},
+ "w": {"damage": 30, "ct":0.00, "gcd":0.50, "cd":  5.00},
+ "e": {"damage": 15, "ct":1.00, "gcd":0.00, "cd":  2.00},
+ "r": {"damage": 10, "ct":0.00, "gcd":2.00, "cd":  3.00}
+}</textarea></label>
+		<label>Eventos
+		<textarea rows="10" name="events">0.00 q
+2.50 w
+3.10 e
+4.20 r</textarea></label>
+		<input type="submit"/>
+
+	</form>
+	<label>Dano total:<div></div></label>
+	<script>
+		var canvas = document.querySelector("canvas");
+		var danototal = document.querySelector("div");
+		var ctx = canvas.getContext("2d");
+		var padding = 5;
+		var skbl = 20;
+		var seg = Math.round(canvas.width-2*padding)/10;
+		var dano = 0;
+
+
+		drawBackground();
+		readForm();
+
+		document.controls.addEventListener("submit",function(e){
+			dano = 0;
+			e.preventDefault();
+			drawBackground();
+			readForm();
+		});
+
+		function readForm(){
+			var char  = JSON.parse(document.controls.char.value);
+			var strikes = document.controls.events.value.split("\n");
+			var k = {"q":1,"w":2,"e":3,"r":4};
+			for(s in strikes){
+				var parts = strikes[s].split(" ");
+				
+				drawSkill(parts[0]*1.0, char[parts[1]], k[parts[1]]);
+			}
+			danototal.innerText = dano;
+			ctx.textAlign = "right";
+			ctx.font = "20px Impact";
+			ctx.fillStyle = "yellow";
+			ctx.strokeStyle = "black";
+			ctx.lineWidth = 4;
+			ctx.strokeText(dano, 595, 25);
+			ctx.fillText(dano, 595, 25);
+			ctx.lineWidth = 1;
+
+
+		}
+		function drawSkill(t,s,l){
+			dano += s.damage;
+			ctx.globalAlpha = 0.8;
+			ctx.lineWidth = 1;
+			//Casting
+			ctx.fillStyle = "pink";
+			ctx.fillRect(padding+t*seg, padding+(4+skbl)*l, s.ct*seg, skbl);
+			ctx.strokeStyle = "red";
+			ctx.strokeRect(padding+t*seg, padding+(4+skbl)*l, s.ct*seg, skbl);
+			//GCD
+			ctx.fillStyle = "lightgreen";
+			ctx.fillRect(padding+(t+s.ct)*seg, padding+(4+skbl)*l, s.gcd*seg, skbl);
+			ctx.strokeStyle = "green";
+			ctx.strokeRect(padding+(t+s.ct)*seg, padding+(4+skbl)*l, s.gcd*seg, skbl);
+			//CD
+			ctx.fillStyle = "lightblue";
+			ctx.fillRect(padding+(t+s.ct+s.gcd)*seg, padding+(4+skbl)*l, s.cd*seg, skbl);
+			ctx.strokeStyle = "blue";
+			ctx.strokeRect(padding+(t+s.ct+s.gcd)*seg, padding+(4+skbl)*l, s.cd*seg, skbl);
+			ctx.globalAlpha = 1.0;
+		}
+		function drawBackground(){
+				ctx.font= "10px sans-serif"
+				ctx.strokeStyle = "black";
+				ctx.fillStyle = "wheat";
+				ctx.fillRect(0,0,canvas.width, canvas.height);
+				ctx.moveTo(padding+i*seg, canvas.height-padding-5);
+				for (var i = 0; i < 11; i++) {
+					ctx.fillStyle = "black";
+					ctx.lineTo(padding+i*seg, canvas.height-padding);
+					ctx.lineTo(padding+i*seg, canvas.height-padding-5);
+					ctx.moveTo(padding+i*seg, canvas.height-padding);
+					ctx.stroke();
+					ctx.fillStyle = "darkgrey";
+					ctx.fillText(i, padding+i*seg-3, canvas.height-padding-10);
+				}
+		}
+
+	</script>
+</body>
+</html>
